@@ -1,0 +1,1 @@
+# ICAIF_2024_cryptocurreny_hackathon_starting_kit
