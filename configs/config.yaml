@@ -1,0 +1,40 @@
+
+device: cuda
+seed: 0
+gpu_id : "1"
+train: True
+n_lags: 24
+
+data_dir: 'data/'
+
+algo: TailGAN
+generator: Tail
+discriminator: Tail
+#scale parameter for W
+W: 10.0
+#quantiles
+alphas: [0.05]
+#score function
+score: 'quant'
+#Project into constraint set
+project: True
+#multiplier of temperature
+temp: 1 # 0.01
+#dimensionality of the latent space
+latent_dim: 256 # 1000
+#number of rows and columns
+n_rows: 24
+n_cols: 3
+#hyperparameters:
+lr_G: 0.002
+lr_D: 0.003
+D_steps_per_G_step: 3
+batch_size: 256
+steps: 5 # Turn to 10**5 for better performance
+#generator hyperparameter:
+G_input_dim: 3 # Noise dimension
+G_hidden_dim: 64
+G_num_layers: 2
+#discriminator hyperparameter:
+D_hidden_dim: 32
+D_num_layers: 3
