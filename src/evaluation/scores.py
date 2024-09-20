@@ -1,5 +1,4 @@
 from src.evaluation.eval_helper import *
-from sklearn.metrics import roc_auc_score
 
 
 def get_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config):
