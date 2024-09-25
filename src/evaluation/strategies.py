@@ -258,7 +258,7 @@ class MeanReversionStrategy(TradingStrategy):
 
 class TrendFollowingStrategy(TradingStrategy):
     def __init__(self, initial_capital=10000, min_trade_size=0.0001, max_capital_per_asset=0.2, short_window=5,
-                 long_window=20):
+                 long_window=12):
         """
         :param short_window: The short window for calculating the short-term moving average.
         :param long_window: The long window for calculating the long-term moving average.

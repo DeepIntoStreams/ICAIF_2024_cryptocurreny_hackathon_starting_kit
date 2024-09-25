@@ -33,20 +33,20 @@ class EvaluationComponent(object):
         elif 'seed' in config:
             self.seed = config.seed
         else:
-            self.seed = None
+            self.seed = 52
 
         self.real_data = real_data
         self.dim = self.real_data.shape[-1]
 
         self.sample_size = min(self.real_data.shape[0], self.config.Evaluation.batch_size)
-        print(self.sample_size)
-        # set_seed(self.config.seed)
+
+        set_seed(self.config.seed)
         self.data_set = self.get_data(n=self.n_eval)
 
         strat_name = kwargs.get('strat_name', 'equal_weight')
         self.strat = STRATEGIES[strat_name]()
         self.metrics_group = {
-            'stylized_fact_scores': ['hist_loss', 'cross_corr', 'cov_loss', 'acf_loss'],
+            'stylized_fact_scores': ['hist_loss', 'cross_corr', 'cov_loss', 'acf_loss', 'std_loss'],
             'implicit_scores': ['discriminative_score', 'predictive_score', 'predictive_FID'],
             'sig_scores': ['sigw1', 'sig_mmd'],
             'permutation_test': ['permutation_test'],
@@ -65,7 +65,7 @@ class EvaluationComponent(object):
             idx = idx_all[i * batch_size:(i + 1) * batch_size]
             # idx = torch.randint(real_data.shape[0], (sample_size,))
             real = self.real_data[idx]
-            idx = idx_all_test[i * batch_size:(i + 1) * batch_size]
+            # idx = idx_all_test[i * batch_size:(i + 1) * batch_size]
             fake = self.fake_data[idx]
             data.update({i:
                 {
@@ -89,7 +89,7 @@ class EvaluationComponent(object):
             if len(metrics_in_group):
 
                 for metric in metrics_in_group:
-                    print(f'---- evaluation metric = {metric} in group = {grp} ----')
+                    # print(f'---- evaluation metric = {metric} in group = {grp} ----')
 
                     # create eval function by metric name
                     eval_func = getattr(self, metric)
@@ -125,7 +125,8 @@ class EvaluationComponent(object):
                         summary[f'{metric}_mean'] = m_mean
                         summary[f'{metric}_std'] = m_std
             else:
-                print(f' No metrics enabled in group = {grp}')
+                # print(f' No metrics enabled in group = {grp}')
+                continue
 
         df = pd.DataFrame([summary])
 
@@ -245,3 +246,7 @@ class EvaluationComponent(object):
         ecfg = self.config.Evaluation.TestMetrics.es
         loss = to_numpy(ESLoss(real.unsqueeze(2), name='es_loss', alpha=ecfg.alpha)(fake.unsqueeze(2)))
         return loss
+    def std_loss(self, real, fake):
+        loss = to_numpy(StdLoss(real, name='std_loss')(fake))
+        return loss
+

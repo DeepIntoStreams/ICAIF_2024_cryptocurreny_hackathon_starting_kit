@@ -68,7 +68,7 @@ if os.path.isdir(submit_dir) and os.path.isdir(truth_dir):
     fake_log_return = fake_log_return[:1800]
 
     truth_price = log_return_to_price(truth_log_return, truth_init_price)
-    fake_price = log_return_to_price(fake_log_return, truth_price)
+    fake_price = log_return_to_price(fake_log_return, truth_init_price)
 
     res_dict = {"var_mean" : 0., "es_mean": 0., "max_drawback_mean": 0., "cumulative_pnl_mean": 0.}
 

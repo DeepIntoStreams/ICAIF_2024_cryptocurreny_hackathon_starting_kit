@@ -45,19 +45,19 @@ class ACFLoss(Loss):
 class MeanLoss(Loss):
     def __init__(self, x_real, **kwargs):
         super(MeanLoss, self).__init__(norm_foo=torch.abs, **kwargs)
-        self.mean = x_real.mean((0, 1))
+        self.mean = x_real.mean(1)
 
     def compute(self, x_fake, **kwargs):
-        return self.norm_foo(x_fake.mean((0, 1)) - self.mean)
+        return self.norm_foo(x_fake.mean(1) - self.mean)
 
 
 class StdLoss(Loss):
     def __init__(self, x_real, **kwargs):
         super(StdLoss, self).__init__(norm_foo=torch.abs, **kwargs)
-        self.std_real = x_real.std((0, 1))
+        self.std_real = x_real.std(1)
 
     def compute(self, x_fake, **kwargs):
-        return self.norm_foo(x_fake.std((0, 1)) - self.std_real)
+        return self.norm_foo(x_fake.std(1) - self.std_real)
 
 
 class CrossCorrelLoss(Loss):
@@ -202,7 +202,7 @@ def tail_metric(x, alpha, statistic):
         tmp_res = list()
         # Exclude the initial point
         for t in range(x.shape[1]):
-            x_ti = x[:, t, i].reshape(-1, 1)
+            x_ti = x[:, t, i]
             sorted_arr, _ = torch.sort(x_ti)
             var_alpha_index = int(alpha * len(sorted_arr))
             var_alpha = sorted_arr[var_alpha_index]
