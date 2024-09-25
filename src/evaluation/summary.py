@@ -100,7 +100,7 @@ class EvaluationComponent(object):
                         summary['permutation_test_type1_error'] = type1_error
 
                     else:
-                        for i in tqdm(range(self.n_eval)):
+                        for i in range(self.n_eval):
                             real = self.data_set[i]['real']
                             fake = self.data_set[i]['fake']
 
