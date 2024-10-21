@@ -121,7 +121,7 @@ class TailGANTrainer(BaseTrainer):
             D_loss = self.D_trainstep(price_gen, price_real)
             if i == 0:
                 self.losses_history["D_loss"].append(D_loss)
-            G_loss = self.G_trainstep(price_gen, price_real, device, step)
+        G_loss = self.G_trainstep(price_gen, price_real, device, step)
             
 
     def D_trainstep(self, x_fake, x_real):
