@@ -1,7 +1,6 @@
 import torch
 import math
 
-
 def log_return_to_price(log_returns, initial_prices):
     """
     Convert log returns to price process.
@@ -29,6 +28,7 @@ def log_return_to_price(log_returns, initial_prices):
     return prices[:, 1:, :]
 
 
+
 class TradingStrategy:
     def __init__(self, initial_capital=10000, min_trade_size=0.0001, max_capital_per_asset=0.2):
         self.initial_capital = initial_capital
@@ -50,8 +50,8 @@ class TradingStrategy:
         """
         N, d = signals.shape  # Number of batches and assets
 
-        updated_positions = self.positions[:, t-1, :].clone()  # Copy positions to update
-        updated_capital = self.remaining_capital[:, t-1].clone()  # Copy remaining capital to update
+        updated_positions = self.positions[:, t, :].clone()  # Copy positions to update # modified t-1-> t
+        updated_capital = self.remaining_capital[:, t].clone()  # Copy remaining capital to update # modified t-1-> t
 
         for n in range(N):  # Loop over each batch
             for i in range(d):  # Loop over each asset
@@ -67,7 +67,7 @@ class TradingStrategy:
 
                 elif current_signal == -1:  # Sell signal
                     # Sell all units of this asset
-                    units_to_sell = updated_positions[n, i]
+                    units_to_sell = updated_positions[n, i].clone()
                     updated_positions[n, i] = 0  # Set position to 0 after selling
                     updated_capital[n] += units_to_sell * current_price  # Add the proceeds from the sale to capital
 
@@ -119,8 +119,8 @@ class TradingStrategy:
                                                                           price_series[:, t, :], t)
 
             # Update the positions and capital
-            self.remaining_capital[:, t + 1] = updated_capital
-            self.positions[:, t + 1] = updated_positions
+            self.remaining_capital[:, t+1 ] = updated_capital 
+            self.positions[:, t+1 ] = updated_positions 
 
         self.close_position(price_series[:, -1, :])
         pnl = self.compute_cumulative_pnl(price_series)
@@ -357,5 +357,3 @@ class VolatilityTradingStrategy(TradingStrategy):
                 signals[sell_mask, t, i] = -1  # Sell signal for low volatility
 
         return signals
-
-
