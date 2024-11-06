@@ -357,3 +357,55 @@ class VolatilityTradingStrategy(TradingStrategy):
                 signals[sell_mask, t, i] = -1  # Sell signal for low volatility
 
         return signals
+
+class GridTradingStrategy(TradingStrategy):
+    def __init__(self, initial_capital=10000, min_trade_size=0.0001, max_capital_per_asset=0.2,
+                 r_u=0.1, r_d=-0.1):
+        """
+        :param grid_levels: The number of grid levels to use between lower and upper boundaries.
+        :param r_u: The upper return rate for setting the upper grid boundary.
+        :param r_d: The lower return rate for setting the lower grid boundary.
+        """
+        super().__init__(initial_capital, min_trade_size, max_capital_per_asset)
+        self.r_u = r_u
+        self.r_d = r_d
+        self.window_size = 1
+
+    def get_buy_sell_signals(self, price_series: torch.Tensor):
+        """
+        Generate buy/sell signals based on grid trading logic with fixed grid boundaries.
+        :param price_series: Tensor of shape [N, T, d], where N = batch size, T = time steps, and d = number of assets.
+        :return: Signals of shape [N, T, d], where 1 indicates buy, -1 indicates sell, and 0 indicates no action.
+        """
+        N, T, d = price_series.shape
+        signals = torch.zeros_like(price_series).to(price_series.device)
+
+        # Shift price_series to get price_t and price_t_minus_1
+        price_t = price_series[:, 1:, :]         # Shape [N, T-1, d]
+        price_t_minus_1 = price_series[:, :-1, :]  # Shape [N, T-1, d]
+
+        for i in range(d):
+            # Get the initial price S_0 for asset i for each batch
+            S_0 = price_series[:, :1, i].unsqueeze(-1).repeat(1, T-1, 1)  # Shape [N, T-1, 1]
+
+            # Calculate upper and lower boundaries
+            upper_boundary = (1 + self.r_u) * S_0  # Shape [N, T-1, 1]
+            lower_boundary = (1 + self.r_d) * S_0  # Shape [N, T-1, 1]
+
+            # For asset i, get price_t and price_t_minus_1
+            price_t_i = price_t[:, :, i].unsqueeze(-1)  # Shape [N, T-1, 1]
+            price_t_minus_1_i = price_t_minus_1[:, :, i].unsqueeze(-1)  # Shape [N, T-1, 1]
+
+            # Compare price_t and price_t_minus_1 to grid_prices to detect crossings
+            crossed_from_above = (price_t_minus_1_i > lower_boundary) & (price_t_i <= lower_boundary)  # Shape [N, T-1, 1]
+            crossed_from_below = (price_t_minus_1_i < upper_boundary) & (price_t_i >= upper_boundary)  # Shape [N, T-1, 1]
+
+            # Sum over grid levels to detect any crossings
+            buy_signals = crossed_from_above[:,:,0]  # Shape [N, T-1, 1]
+            sell_signals = crossed_from_below[:,:,0]  # Shape [N, T-1, 1]
+
+            # Assign signals
+            signals[:, self.window_size:, i][buy_signals] = 1    # Buy signal
+            signals[:, self.window_size:, i][sell_signals] = -1  # Sell signal
+
+        return signals
